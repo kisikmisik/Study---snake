@@ -35,7 +35,7 @@ let drawScore = function () {
 
 // Function, that delete setInterval and prints game over
 let gameOver = function () {
-    clearInterval(intervalId);
+    playing = false;
     ctx.font = "60px Courier";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
@@ -94,7 +94,13 @@ let Snake = function () {
 // Draw a a block at the location of each element in snake segments array
 Snake.prototype.draw = function () {
     for (let i = 0; i < this.segments.length; i++) {
-        this.segments[i].drawSquare("white");
+        if (i === 0) {
+            this.segments[i].drawSquare("green");
+        } else if (i % 2 === 0){
+            this.segments[i].drawSquare("blue");
+        } else {
+            this.segments[i].drawSquare("yellow");
+        }
     }
 };
 
@@ -120,6 +126,7 @@ Snake.prototype.move = function () {
     if (newHead.equal(apple.position)) {
         score++;
         apple.move();
+        animationTime -= 5;
     } else {
         this.segments.pop();
     }
@@ -176,15 +183,24 @@ Apple.prototype.move = function () {
 let snake = new Snake();
 let apple = new Apple();
 
-// run the game using setInterval
-let intervalId = setInterval(function () {
+
+
+// run the game using setTimeout
+var playing = true;
+let animationTime = 100;
+
+let gameLoop = function () {
     ctx.clearRect(0, 0, width, height);
     drawCanvas();
     drawScore();
     snake.move();
     snake.draw();
     apple.draw();
-}, 100);
+    if (playing === true) {
+        setTimeout(gameLoop, animationTime);
+    }
+};
+gameLoop();
 
 // keycods to directions
 let directions = {
