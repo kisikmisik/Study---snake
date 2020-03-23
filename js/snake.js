@@ -1,96 +1,202 @@
-// Обьявление канваса,
-// Отрисовка границ поля для игры,
-// Отрисовка очков,
-// Разделение канваса на клетки по 10 пикселей, 
-// Отрисовка яблока в рандомном месте канваса, Math.floor(Math.random() * (xCells - 3) + 2)
-// Отрисовка змейки, анимирование, управление,
+let canvas = document.getElementById("snake");
+let ctx = canvas.getContext("2d");
 
-// Цикл( 
-//     Добавление очка при сьедании яблока,
-//     увеличение змейки на клетку,
-//     движение змейки,
-//     Проверка на коллизию с границами поля и собой, отрисовка Game over;
-// )
+// Assign height and width of the canvas to a variables
+let width = canvas.width;
+let height = canvas.height;
 
-// Опционально: добавление в начале возможности выбрать сложность.
+// Size of one block and the whole count of blocks by x and y
+let blockSize = 20;
+let widthInBlocks = width / blockSize;
+let heightInBlocks = height / blockSize;
 
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+// Game score to 0
+let score = 0;
 
-var width = canvas.width;
-var height = canvas.height;
-var cellSize = 10;
-var score = 0;
-var xCells = width / cellSize;
-var yCells = height / cellSize;
-
-var drawBorders = function () {
-    ctx.fillStyle = "gray";
-    ctx.fillRect(0, 0, width, cellSize);
-    ctx.fillRect(0, height - cellSize, width, cellSize);
-    ctx.fillStyle = "darkGray";
-    ctx.fillRect(0, cellSize, cellSize, height);
-    ctx.fillRect(width - cellSize, cellSize, cellSize, height);
+// Draw the game field and the borders
+let drawCanvas = function () {
+    ctx.fillStyle = "Black";
+    ctx.fillRect(0, 0, width, height)
+    ctx.fillStyle = "Red";
+    ctx.fillRect(0, 0, width, blockSize);
+    ctx.fillRect(0, height - blockSize, width, blockSize);
+    ctx.fillRect(0, 0, blockSize, height);
+    ctx.fillRect(width - blockSize, 0, blockSize, height);
 };
 
-var drawScore = function () {
+// Draw the score
+let drawScore = function () {
     ctx.font = "20px Courier";
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "White";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("Score: " + score, cellSize * 2, cellSize * 2)
-}
+    ctx.fillText("Score: " + score, blockSize, blockSize);
+};
 
-var circle = function (x, y, radius, isFilled) {
+// Function, that delete setInterval and prints game over
+let gameOver = function () {
+    clearInterval(intervalId);
+    ctx.font = "60px Courier";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Game Over", width / 2, height / 2);
+};
+
+// Draw a circle 
+let circle = function (x, y, radius, fillCircle) {
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2, isFilled)
-    if (isFilled === true) {
+    ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+    if (fillCircle) {
         ctx.fill();
     } else {
         ctx.stroke();
     }
-}
+};
 
-var Apple = function () {
-    this.x = 30;
-    this.y = 15;
-    this.color = "green";
-}
+// Block constructor
+let Block = function (col, row) {
+    this.col = col;
+    this.row = row;
+};
 
-Apple.prototype.draw = function () {
-    ctx.fillStyle = this.color;
-    circle(this.x * cellSize, this.y * cellSize, cellSize / 2, true);
-}
+// Draw a block at the block's location
+Block.prototype.drawSquare = function (color) {
+    let x = this.col * blockSize;
+    let y = this.row * blockSize;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, blockSize, blockSize);
+};
+    
+// Draw a circle at the block's location
+Block.prototype.drawCircle = function (color) {
+    let centerX = this.col * blockSize + blockSize / 2;
+    let centerY = this.row * blockSize + blockSize / 2;
+    ctx.fillStyle = color;
+    circle(centerX, centerY, blockSize / 2, true);
+};
+// Check if the one block is in the same location as the another 
+Block.prototype.equal = function (otherBlock) {
+    return this.col === otherBlock.col && this.row === otherBlock.row;
+};
 
-var Snake = function () {
-    this.x = xCells / 2;
-    this.y = yCells / 2;
-    this.xSpeed = 1;
-    this.ySpeed = 0;
-}
+// The Snake constructor
+let Snake = function () {
+    this.segments = [
+        new Block(7, 5),
+        new Block(6, 5),
+        new Block(5, 5)
+    ];
+    this.direction = "right";
+    this.nextDirection = "right";
+};
 
+// Draw a a block at the location of each element in snake segments array
 Snake.prototype.draw = function () {
-    ctx.fillRect(this.x * cellSize, this.y * cellSize, cellSize, cellSize);
-}
+    for (let i = 0; i < this.segments.length; i++) {
+        this.segments[i].drawSquare("white");
+    }
+};
 
+// Create a new head and add it to the beginning of the snake to move the snake,
 Snake.prototype.move = function () {
-    this.x += this.xSpeed;
-    this.y += this.ySpeed;
-}
+    let head = this.segments[0];
+    let newHead;
+    this.direction = this.nextDirection;
+    if (this.direction === "right") {
+        newHead = new Block(head.col + 1, head.row);
+    } else if (this.direction === "down") {
+        newHead = new Block(head.col, head.row + 1);
+    } else if (this.direction === "left") {
+        newHead = new Block(head.col - 1, head.row);
+    } else if (this.direction === "up") {
+        newHead = new Block(head.col, head.row - 1);
+    }
+    if (this.checkCollision(newHead)) {
+        gameOver();
+        return;
+    }
+    this.segments.unshift(newHead);
+    if (newHead.equal(apple.position)) {
+        score++;
+        apple.move();
+    } else {
+        this.segments.pop();
+    }
+};
 
-var snake = new Snake();
-var apple = new Apple();
+// Check if the snake's new head has collided with the wall or itself
+Snake.prototype.checkCollision = function (head) {
+    let leftCollision = (head.col === 0);
+    let topCollision = (head.row === 0);
+    let rightCollision = (head.col === widthInBlocks - 1);
+    let bottomCollision = (head.row === heightInBlocks - 1);
+    let wallCollision = leftCollision || topCollision || rightCollision || bottomCollision;
+    let selfCollision = false;
+    for (let i = 0; i < this.segments.length; i++) {
+        if (head.equal(this.segments[i])) {
+            selfCollision = true;
+        }
+    }
+    return wallCollision || selfCollision;
+};
 
-var gameProcess = setInterval(function () {
-    ctx.clearRect(cellSize, cellSize, width - cellSize * 2, height - cellSize * 2);
-    drawBorders();
+// Set the next direction of the snake according to the keyword presses
+Snake.prototype.setDirection = function (newDirection) {
+    if (this.direction === "up" && newDirection === "down") {
+        return;
+    } else if (this.direction === "right" && newDirection === "left") {
+        return;
+    } else if (this.direction === "down" && newDirection === "up") {
+        return;
+    } else if (this.direction === "left" && newDirection === "right") {
+        return;
+    }
+    this.nextDirection = newDirection;
+};
+
+// Apple constructor
+let Apple = function () {
+    this.position = new Block(10, 10);
+};
+
+// Draw a circle at the apple's location
+Apple.prototype.draw = function () {
+    this.position.drawCircle("LimeGreen");
+};
+
+// create an apple in a new random location
+Apple.prototype.move = function () {
+    let randomCol = Math.floor(Math.random() * (widthInBlocks - 2)) + 1;
+    let randomRow = Math.floor(Math.random() * (heightInBlocks - 2)) + 1
+    this.position = new Block(randomCol, randomRow);
+};
+
+// Create the snake and the apple objects
+let snake = new Snake();
+let apple = new Apple();
+
+// run the game using setInterval
+let intervalId = setInterval(function () {
+    ctx.clearRect(0, 0, width, height);
+    drawCanvas();
     drawScore();
-    
-    snake.draw();
     snake.move();
+    snake.draw();
     apple.draw();
-    
-}, 100)
+}, 100);
 
-
-
+// keycods to directions
+let directions = {
+    37: "left",
+    38: "up",
+    39: "right",
+    40: "down"
+};
+// keydown listener, which determines the next direction of the snake
+$("body").keydown(function (event) {
+    let newDirection = directions[event.keyCode];
+    if (newDirection !== undefined) {
+        snake.setDirection(newDirection);
+    }
+});
