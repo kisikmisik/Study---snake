@@ -1,5 +1,4 @@
-This is my version of classic snake game. 
-
+This is my version of classic game The snake. 
 
 Version 1.1:
 1) the snake now in color
