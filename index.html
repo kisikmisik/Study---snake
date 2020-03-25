@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Snake v.1.2 by Vladimir Nofenko</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="display: flex; justify-content: center;"> 
+    <form action="#" class="settings">
+        <h1>The Snake</h1>
+        <p class="version">version 1.2</p>
+        <div class="settings__difficulty">
+            <p class="settings__text">Choose the difficulty:</p>
+            <button class="settings__easy">Easy</button>
+            <button class="settings__medium">Medium</button>
+            <button class="settings__nightmare">Nightmare</button>
+        </div>
+        <div class="settings__size">
+            <p class="settings__text">Choose the the size of playground:</p>
+            <button class="settings__small">Small</button>
+            <button class="settings__medium-size">Medium</button>
+        </div>
+        <button class="settings__start" type="submit">Start</button>
+    </form>
+    <canvas id="snake" width="700" height="600" class="visually-hidden"></canvas>
+    <script src="snake.js"></script>
+    <script src="setup.js"></script>
+    
+</body>
+</html>
