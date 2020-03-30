@@ -1,5 +1,5 @@
 This is my version of classic game. 
-Vanilla JavaScript ES6, HTML, some CSS.
+Vanilla JavaScript(mostly ES5, with some ES6), HTML, some CSS.
 
 Version 1.1:
 1) the snake now in color
